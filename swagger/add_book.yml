@@ -1,0 +1,38 @@
+swagger: '2.0'
+info:
+  title: 'API Documentation for Books'
+  description: 'API endpoints to manage Books'
+  version: '1.0'
+paths:
+  /api/book:
+    post:
+      summary: 'Add a new book'
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              bookname:
+                type: string
+                example: 'Python Fundamentals'
+              author:
+                type: string
+                example: 'Jane Smith'
+              price:
+                type: integer
+                example: 30
+      responses:
+        201:
+          description: 'Book added successfully'
+          schema:
+            type: 'object'
+            properties:
+              bookid:
+                type: 'integer'
+                example: 2
+        400:
+          description: 'Invalid request'

@@ -1,0 +1,20 @@
+swagger: '2.0'
+info:
+  title: 'API Documentation for Books'
+  description: 'API endpoints to manage Books'
+  version: '1.0'
+paths:
+  /api/book/{bookid}:
+    delete:
+      summary: 'Delete a book'
+      parameters:
+        - name: bookid
+          in: path
+          required: true
+          type: integer
+          description: 'ID of the book to delete'
+      responses:
+        204:
+          description: 'Book deleted successfully'
+        404:
+          description: 'Book not found'
