@@ -1,38 +1,35 @@
 swagger: '2.0'
 info:
-  title: 'API Documentation for Books'
-  description: 'API endpoints to manage Books'
+  title: CRUD API for Books
+  description: API endpoints to perform CRUD operations on Books
   version: '1.0'
 paths:
-  /api/book:
+  /api/book/:
     post:
-      summary: 'Add a new book'
-      consumes:
-        - application/json
+      summary: Add a new book
       parameters:
         - in: body
           name: body
+          description: Book object
           required: true
           schema:
             type: object
             properties:
               bookname:
                 type: string
-                example: 'Python Fundamentals'
               author:
                 type: string
-                example: 'Jane Smith'
               price:
                 type: integer
-                example: 30
       responses:
         201:
-          description: 'Book added successfully'
+          description: Book added successfully
           schema:
-            type: 'object'
+            type: object
             properties:
               bookid:
-                type: 'integer'
-                example: 2
+                type: integer
         400:
-          description: 'Invalid request'
+          description: Bad request, invalid input
+      tags:
+        - Books

@@ -1,0 +1,33 @@
+swagger: '2.0'
+info:
+  title: CRUD API for Books
+  description: API endpoints to perform CRUD operations on Books
+  version: '1.0'
+paths:
+  /api/book/{bookid}:
+    get:
+      summary: Retrieve a single book by ID
+      parameters:
+        - name: bookid
+          in: path
+          required: true
+          type: integer
+          description: ID of the book to retrieve
+      responses:
+        200:
+          description: Book found
+          schema:
+            type: object
+            properties:
+              bookid:
+                type: integer
+              bookname:
+                type: string
+              author:
+                type: string
+              price:
+                type: integer
+        404:
+          description: Book not found
+      tags:
+        - Books

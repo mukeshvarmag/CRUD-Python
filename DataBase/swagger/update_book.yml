@@ -1,0 +1,43 @@
+swagger: '2.0'
+info:
+  title: CRUD API for Books
+  description: API endpoints to perform CRUD operations on Books
+  version: '1.0'
+paths:
+  /api/book/:
+    put:
+      summary: Update an existing book
+      parameters:
+        - in: body
+          name: body
+          description: Updated book object
+          required: true
+          schema:
+            type: object
+            properties:
+              bookid:
+                type: integer
+              bookname:
+                type: string
+              author:
+                type: string
+              price:
+                type: integer
+      responses:
+        200:
+          description: Book updated successfully
+          schema:
+            type: object
+            properties:
+              bookid:
+                type: integer
+              bookname:
+                type: string
+              author:
+                type: string
+              price:
+                type: integer
+        404:
+          description: Book not found
+      tags:
+        - Books
