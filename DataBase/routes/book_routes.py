@@ -5,12 +5,15 @@ from DataBase import db
 
 bp = Blueprint('books', __name__, url_prefix='/api/book')
 
+
 @bp.route('/', methods=['GET'])
 @swag_from('../../swagger/get_all_books.yml')
 def get_all_books():
     books = Books.query.all()
-    result = [{'bookid': book.bookid, 'bookname': book.bookname, 'author': book.author, 'price': book.price} for book in books]
+    result = [{'bookid': book.bookid, 'bookname': book.bookname, 'author': book.author, 'price': book.price} for book in
+              books]
     return jsonify(result)
+
 
 @bp.route('/<int:bookid>', methods=['GET'])
 @swag_from('../../swagger/get_book.yml')
@@ -20,6 +23,7 @@ def get_book(bookid):
         return jsonify({'message': 'Book not found'}), 404
     return jsonify({'bookid': book.bookid, 'bookname': book.bookname, 'author': book.author, 'price': book.price})
 
+
 @bp.route('/', methods=['POST'])
 @swag_from('../../swagger/add_book.yml')
 def add_book():
@@ -28,6 +32,7 @@ def add_book():
     db.session.add(new_book)
     db.session.commit()
     return jsonify({'bookid': new_book.bookid}), 201
+
 
 @bp.route('/', methods=['PUT'])
 @swag_from('../../swagger/update_book.yml')
@@ -42,6 +47,7 @@ def update_book():
     book.price = data['price']
     db.session.commit()
     return jsonify({'bookid': book.bookid, 'bookname': book.bookname, 'author': book.author, 'price': book.price})
+
 
 @bp.route('/<int:bookid>', methods=['DELETE'])
 @swag_from('../../swagger/delete_book.yml')

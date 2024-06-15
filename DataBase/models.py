@@ -1,6 +1,7 @@
 from DataBase import db
 from sqlalchemy import Sequence
 
+
 class Books(db.Model):
     __tablename__ = 'BOOKS'
     bookid = db.Column(db.Integer, Sequence('book_id_seq'), primary_key=True)
