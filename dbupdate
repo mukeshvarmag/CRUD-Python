@@ -3,48 +3,82 @@ import sqlite3
 def chunked_batch_update(connection, table, updates, chunk_size=100):
     cursor = connection.cursor()
 
-    for i in range(0, len(updates), chunk_size):
-        chunk = updates[i:i + chunk_size]
-        
-        set_clauses = []
-        ids = []
-        
-        for update in chunk:
-            rowid = update["Rowtoupdate"]
-            session_id = update["Session id"]
-            column_to_update = update["Columntouodate"]
-            value = update["Value"]
+    try:
+        for i in range(0, len(updates), chunk_size):
+            chunk = updates[i:i + chunk_size]
+            
+            # Building CASE statements for both session_id and the target column
+            column_cases = {}
+            session_cases = []
+            ids = []
 
-            # Prepare the SET clause for both the Session ID and the specified column
-            set_clauses.append(f"""
-                {column_to_update} = CASE WHEN id = {rowid} THEN '{value}' ELSE {column_to_update} END,
-                session_id = CASE WHEN id = {rowid} THEN '{session_id}' ELSE session_id END
-            """)
-            ids.append(str(rowid))
-        
-        # Final SQL script
-        set_clause_str = ', '.join(set_clauses)
-        ids_str = ', '.join(ids)
+            for update in chunk:
+                rowid = update["Rowtoupdate"]
+                session_id = update["Session id"]
+                column_to_update = update["Columntouodate"]
+                value = update["Value"]
+                ids.append(str(rowid))
 
-        sql_script = f"""
-        UPDATE {table}
-        SET {set_clause_str}
-        WHERE id IN ({ids_str});
-        """
+                # Building a CASE statement for each column separately
+                if column_to_update not in column_cases:
+                    column_cases[column_to_update] = []
+                column_cases[column_to_update].append(f"WHEN id = {rowid} THEN '{value}'")
 
-        # Execute the SQL update
-        cursor.execute(sql_script)
-    
-    # Commit changes and close cursor
-    connection.commit()
-    cursor.close()
+                # CASE statement for the session ID
+                session_cases.append(f"WHEN id = {rowid} THEN '{session_id}'")
+
+            # Create the full CASE statement for session_id
+            session_case_sql = f"session_id = CASE {' '.join(session_cases)} ELSE session_id END"
+
+            # Create the full CASE statements for all columns
+            set_clauses = []
+            for column, cases in column_cases.items():
+                case_sql = f"{column} = CASE {' '.join(cases)} ELSE {column} END"
+                set_clauses.append(case_sql)
+
+            # Combine all the set clauses
+            set_clause_str = ', '.join(set_clauses + [session_case_sql])
+
+            # Get the list of row IDs for the WHERE clause
+            ids_str = ', '.join(ids)
+
+            # Final SQL script
+            sql_script = f"""
+            UPDATE {table}
+            SET {set_clause_str}
+            WHERE id IN ({ids_str});
+            """
+
+            # Execute the SQL update
+            cursor.execute(sql_script)
+
+        # Commit the transaction if no errors occur
+        connection.commit()
+
+    except sqlite3.Error as e:
+        # If any SQLite error occurs, roll back the transaction and print the error
+        connection.rollback()
+        print(f"An error occurred: {e}")
+
+    finally:
+        # Close the cursor and connection in the finally block to ensure cleanup
+        cursor.close()
 
 # Example usage
 updates_list = [
     {"Rowtoupdate": 1, "Session id": "user1", "Columntouodate": "column1", "Value": "new_value1"},
     {"Rowtoupdate": 2, "Session id": "user2", "Columntouodate": "column1", "Value": "new_value2"},
-    # Add more rows as needed
+    {"Rowtoupdate": 3, "Session id": "user3", "Columntouodate": "column2", "Value": "new_value3"},
 ]
-connection = sqlite3.connect('your_database.db')  # Adjust SQLite database file
-chunked_batch_update(connection, 'your_table', updates_list)
-connection.close()
+
+try:
+    connection = sqlite3.connect('your_database.db')  # Adjust SQLite database file
+    chunked_batch_update(connection, 'your_table', updates_list)
+
+except sqlite3.Error as e:
+    print(f"Database connection error: {e}")
+
+finally:
+    # Ensure the connection is closed after operations
+    if connection:
+        connection.close()
