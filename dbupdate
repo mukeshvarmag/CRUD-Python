@@ -1,8 +1,8 @@
-import pymysql  # or psycopg2 for PostgreSQL
+import sqlite3
 
 def chunked_batch_update(connection, table, updates, chunk_size=100):
     cursor = connection.cursor()
-    
+
     for i in range(0, len(updates), chunk_size):
         chunk = updates[i:i + chunk_size]
         
@@ -12,12 +12,14 @@ def chunked_batch_update(connection, table, updates, chunk_size=100):
         for update in chunk:
             rowid = update["Rowtoupdate"]
             session_id = update["Session id"]
-            column_to_update = update["Columntoupdate"]
+            column_to_update = update["Columntouodate"]
             value = update["Value"]
-            
-            # Prepare the SET clause for each row/column update
-            case_statement = f"WHEN id = {rowid} THEN '{value}'"
-            set_clauses.append(f"{column_to_update} = CASE {case_statement} ELSE {column_to_update} END")
+
+            # Prepare the SET clause for both the Session ID and the specified column
+            set_clauses.append(f"""
+                {column_to_update} = CASE WHEN id = {rowid} THEN '{value}' ELSE {column_to_update} END,
+                session_id = CASE WHEN id = {rowid} THEN '{session_id}' ELSE session_id END
+            """)
             ids.append(str(rowid))
         
         # Final SQL script
@@ -29,7 +31,7 @@ def chunked_batch_update(connection, table, updates, chunk_size=100):
         SET {set_clause_str}
         WHERE id IN ({ids_str});
         """
-        
+
         # Execute the SQL update
         cursor.execute(sql_script)
     
@@ -43,6 +45,6 @@ updates_list = [
     {"Rowtoupdate": 2, "Session id": "user2", "Columntouodate": "column1", "Value": "new_value2"},
     # Add more rows as needed
 ]
-connection = pymysql.connect(host='localhost', user='user', password='passwd', db='your_db')  # Adjust connection details
+connection = sqlite3.connect('your_database.db')  # Adjust SQLite database file
 chunked_batch_update(connection, 'your_table', updates_list)
 connection.close()
